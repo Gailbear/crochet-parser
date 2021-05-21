@@ -2,7 +2,7 @@ Pattern
   = DefinitionSection Row+ EndOfFile
 
 DefinitionSection
-  = DEFINITION_HEADER Definition+ // how do i tell the end
+  = DEFINITION_HEADER Definition+ Spacing
 Definition  // second custom stitch type name is for notation slot
   = CustomStitchTypeName (OPEN CustomStitchTypeName CLOSE)? (COLON (!EndOfLine .)*)? EndOfLine
 CustomStitchTypeName = [a-zA-Z0-9_ ]+
@@ -18,15 +18,22 @@ StitchSequence
   = StitchGroup (COMMA StitchGroup)* PERIOD
 StitchGroup
   = CH NUMBER
-  / (Stitch / LEFTCURLY StitchSequence RIGHTCURLY) IN StitchTarget TO_FORM_RING?
+  / SKIP? NUMBER? Stitch (IN StitchTarget TO_FORM_RING?)?
+  / LEFTCURLY StitchSequence RIGHTCURLY IN StitchTarget
+  / NUMBER? Stitch IN EachUntil
+EachUntil
+  = EVERY Stitch (UP_TO StitchTarget)?
 
-Stitch = Ordinal? (CH / SL / DC)
+Stitch = Ordinal? NoOrdinalStitch
+NoOrdinalStitch = (CH / SL / DC)
 StitchTarget
-  = Stitch / CH_RING
+  = Stitch PREV_ROW? / CH_RING / CH_SP / LastOnSide / NEXT Stitch
+LastOnSide
+  = "the last " NoOrdinalStitch " on the side"
 
-Ordinal = [1-9]?[0-9]* ("1st" / "2nd" / "3rd" / [04-9] "th" / "first") Spacing
+Ordinal = ("1st" / "2nd" / "3rd" / [04-9] "th" / "first" / "last") Spacing
 
-DEFINITION_HEADER = Spacing "Custom Stitches" Spacing EndOfLine
+DEFINITION_HEADER = Spacing "Custom Stitches" Spacing
 OPEN = '(' Spacing
 CLOSE = ')' Spacing
 COLON = ':' Spacing
@@ -44,9 +51,15 @@ CH = [Cc] "h" Spacing
 SL = [Ss] "l st" Spacing
 DC = [Dd] "c" Spacing
 CH_RING = "ch-ring" Spacing
+CH_SP = ("ch" [1-9][0-9]* " space" / [1-9][0-9]* "-ch-space") Spacing
 
 IN = "in" Spacing
 TO_FORM_RING = "to form a ring" Spacing
+EVERY = "every" Spacing
+UP_TO = "up "? "to" Spacing
+PREV_ROW = "in the beginning of previous row" Spacing
+SKIP = "skip" Spacing
+NEXT = "next"
 
 Spacing = (Space / Comment)*
 Comment = '#' (!EndOfLine .)* EndOfLine
